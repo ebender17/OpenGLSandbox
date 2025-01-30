@@ -1,6 +1,7 @@
 #include "SandboxLayer.h"
 
 using namespace OpenGLCore;
+using namespace OpenGLCore::Utils;
 
 SandboxLayer::SandboxLayer()
 {
@@ -12,6 +13,8 @@ SandboxLayer::~SandboxLayer()
 
 void SandboxLayer::OnAttach()
 {
+    EnableGLDebugging();
+    SetGLDebugLogLevel(DebugLogLevel::High);
 }
 
 void SandboxLayer::OnDetach()
