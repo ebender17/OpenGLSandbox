@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Log.h"
+
 #ifdef OPENGLCORE_DEBUG
 #define OPENGLCORE_ENABLE_ASSERTS
 #endif
