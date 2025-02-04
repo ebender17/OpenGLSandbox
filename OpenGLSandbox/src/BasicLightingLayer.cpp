@@ -128,16 +128,11 @@ void BasicLightingLayer::OnAttach()
     m_PhongShader->UploadUniformFloat("u_SpotLight.quadratic", m_FlashLight->Quadratic);
     m_PhongShader->UploadUniformFloat("u_SpotLight.innerCutOff", m_FlashLight->InnerCutOff);
     m_PhongShader->UploadUniformFloat("u_SpotLight.outerCutOff", m_FlashLight->OuterCutOff);
-
-
-    // TODO : cube light VAO
-    // TODO : flat color shader
 }
 
 void BasicLightingLayer::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
-    // TODO :  delete cube light VAO
     glDeleteVertexArrays(1, &m_VBO);
 }
 
@@ -149,7 +144,6 @@ void BasicLightingLayer::OnEvent(OpenGLCore::Event& event)
 
 void BasicLightingLayer::OnUpdate(OpenGLCore::Timestep ts)
 {
-    // TODO : left off here. Add light cube? Place into another Layer and make Sandbox Layer gui to select examples?
     // Update
     m_Camera->OnUpdate(ts);
 
@@ -184,14 +178,10 @@ void BasicLightingLayer::OnUpdate(OpenGLCore::Timestep ts)
         m_PhongShader->UploadUniformMat4("u_Model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
-
-    // TODO : Light Cubes
 }
 
 void BasicLightingLayer::OnImGuiRender()
 {
-    ImGui::Begin("Controls");
-    ImGui::End();
 }
 
 void BasicLightingLayer::InitializeCamera()
