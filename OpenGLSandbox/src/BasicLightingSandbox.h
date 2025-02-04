@@ -8,11 +8,11 @@
 
 #define NR_POINT_LIGHTS 4
 
-class BasicLightingLayer : public OpenGLCore::Layer
+class BasicLightingSandbox : public OpenGLCore::Layer
 {
 public:
-    BasicLightingLayer();
-    virtual ~BasicLightingLayer();
+    BasicLightingSandbox();
+    virtual ~BasicLightingSandbox();
 
     virtual void OnAttach() override;
     virtual void OnDetach() override;
@@ -33,7 +33,7 @@ private:
 
     OpenGLCore::Utils::Shader* m_PhongShader;
 
-    GLuint m_CubeVAO, m_LightCubeVAO;
+    GLuint m_CubeVAO;
     GLuint m_VBO;
 
     PhongMaterial m_Material;

@@ -1,4 +1,5 @@
-#include "BasicLightingLayer.h"
+#include "BasicLightingSandbox.h"
+#include "StencilSandbox.h"
 
 using namespace OpenGLCore;
 
@@ -7,7 +8,8 @@ class Sandbox : public Application
 public:
     Sandbox()
     {
-        PushLayer(new BasicLightingLayer());
+        //  PushLayer(new BasicLightingSandbox());
+        PushLayer(new StencilSandbox());
     }
 };
 

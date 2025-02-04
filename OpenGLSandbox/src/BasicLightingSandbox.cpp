@@ -1,19 +1,19 @@
-#include "BasicLightingLayer.h"
+#include "BasicLightingSandbox.h"
 
 #include <GLFW/glfw3.h>
 
 using namespace OpenGLCore;
 using namespace OpenGLCore::Utils;
 
-BasicLightingLayer::BasicLightingLayer()
+BasicLightingSandbox::BasicLightingSandbox()
 {
 }
 
-BasicLightingLayer::~BasicLightingLayer()
+BasicLightingSandbox::~BasicLightingSandbox()
 {
 }
 
-void BasicLightingLayer::OnAttach()
+void BasicLightingSandbox::OnAttach()
 {
     EnableGLDebugging();
     SetGLDebugLogLevel(DebugLogLevel::High);
@@ -130,19 +130,19 @@ void BasicLightingLayer::OnAttach()
     m_PhongShader->UploadUniformFloat("u_SpotLight.outerCutOff", m_FlashLight->OuterCutOff);
 }
 
-void BasicLightingLayer::OnDetach()
+void BasicLightingSandbox::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
     glDeleteVertexArrays(1, &m_VBO);
 }
 
-void BasicLightingLayer::OnEvent(OpenGLCore::Event& event)
+void BasicLightingSandbox::OnEvent(OpenGLCore::Event& event)
 {
     EventDispatcher dispatcher(event);
-    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(BasicLightingLayer::OnWindowResized));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(BasicLightingSandbox::OnWindowResized));
 }
 
-void BasicLightingLayer::OnUpdate(OpenGLCore::Timestep ts)
+void BasicLightingSandbox::OnUpdate(OpenGLCore::Timestep ts)
 {
     // Update
     m_Camera->OnUpdate(ts);
@@ -180,18 +180,18 @@ void BasicLightingLayer::OnUpdate(OpenGLCore::Timestep ts)
     }
 }
 
-void BasicLightingLayer::OnImGuiRender()
+void BasicLightingSandbox::OnImGuiRender()
 {
 }
 
-void BasicLightingLayer::InitializeCamera()
+void BasicLightingSandbox::InitializeCamera()
 {
     PerspectiveProjInfo persProjInfo = { 45.0f, (float)1280, (float)720, 0.1f, 1000.0f };
     m_Camera = std::make_unique<FirstPersonCamera>(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f), persProjInfo);
 }
 
-void BasicLightingLayer::InitializeLights()
+void BasicLightingSandbox::InitializeLights()
 {
     m_DirectionalLight = std::make_unique<DirectionalLight>(glm::vec3(-0.2f, -1.0f, -0.3f),
         glm::vec3(0.05f, 0.05f, 0.1f),
@@ -227,7 +227,7 @@ void BasicLightingLayer::InitializeLights()
         1.0f, 0.09f, 0.032f, glm::cos(glm::radians(10.0f)), glm::cos(glm::radians(15.0f)));
 }
 
-bool BasicLightingLayer::OnWindowResized(OpenGLCore::WindowResizeEvent& event)
+bool BasicLightingSandbox::OnWindowResized(OpenGLCore::WindowResizeEvent& event)
 {
     unsigned int width = event.GetWidth();
     unsigned int height = event.GetHeight();
