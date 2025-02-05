@@ -1,18 +1,18 @@
-#include "StencilSandbox.h"
+#include "BlendingSandbox.h"
 
 using namespace OpenGLCore;
 using namespace OpenGLCore::Utils;
 
-StencilSandbox::StencilSandbox()
-    : Layer("StencilSandbox")
+BlendingSandbox::BlendingSandbox()
+    : Layer("BlendingSandbox")
 {
 }
 
-StencilSandbox::~StencilSandbox()
+BlendingSandbox::~BlendingSandbox()
 {
 }
 
-void StencilSandbox::OnAttach()
+void BlendingSandbox::OnAttach()
 {
     EnableGLDebugging();
     SetGLDebugLogLevel(DebugLogLevel::Notification);
@@ -21,9 +21,8 @@ void StencilSandbox::OnAttach()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // vertex position, tex coords
     float vertices[] = {
@@ -111,6 +110,8 @@ void StencilSandbox::OnAttach()
 
     GenerateTexture2D("assets/textures/tile.png", &m_TileTexture, GL_REPEAT, GL_LINEAR);
     GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR);
+    GenerateTexture2D("assets/textures/transparent-window.png", &m_TransparentWindow, GL_REPEAT, GL_LINEAR);
+    GenerateTexture2D("assets/textures/flat-grass-sprite.png", &m_GrassSpriteTexture, GL_REPEAT, GL_LINEAR);
 
     m_TextureUnlitShader = Shader::FromGLSLTextFiles(
         "assets/shaders/textureunlit.vert.glsl",
@@ -120,10 +121,30 @@ void StencilSandbox::OnAttach()
     glUseProgram(m_TextureUnlitShader->GetRendererID());
     m_TextureUnlitShader->UploadUniformInt("u_Texture", 0);
 
+    m_AlphaClipShader = Shader::FromGLSLTextFiles(
+        "assets/shaders/alphacliptexture.vert.glsl",
+        "assets/shaders/alphacliptexture.frag.glsl"
+    );
+
+    glUseProgram(m_AlphaClipShader->GetRendererID());
+    m_AlphaClipShader->UploadUniformFloat("u_AlphaThreshold", 0.1f);
+    m_AlphaClipShader->UploadUniformFloat4("u_Color", { 0.09f, 0.73f, 0.47f, 1.0f });
+
+    m_VegetationPositions.reserve(5);
+    m_VegetationPositions.emplace_back(glm::vec3(-1.5f, -0.1f, 0.5f));
+    m_VegetationPositions.emplace_back(glm::vec3(1.5f, -0.1f, 1.2f));
+    m_VegetationPositions.emplace_back(glm::vec3(0.0f, -0.1f, 0.7f));
+    m_VegetationPositions.emplace_back(glm::vec3(-0.3f, -0.1f, -2.3f));
+    m_VegetationPositions.emplace_back(glm::vec3(0.5f, -0.1f, -0.6f));
+
+    m_WindowPositions.reserve(2);
+    m_WindowPositions.emplace_back(glm::vec3(-1.0f, 0.0f, 0.01f));
+    m_WindowPositions.emplace_back(glm::vec3(1.0f, 0.0f, -1.0f));
+
     glBindVertexArray(0);
 }
 
-void StencilSandbox::OnDetach()
+void BlendingSandbox::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
     glDeleteVertexArrays(1, &m_QuadVAO);
@@ -131,27 +152,26 @@ void StencilSandbox::OnDetach()
     glDeleteBuffers(1, &m_QuadVBO);
 }
 
-void StencilSandbox::OnEvent(OpenGLCore::Event& event)
+void BlendingSandbox::OnEvent(Event& event)
 {
     EventDispatcher dispatcher(event);
-    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(StencilSandbox::OnWindowResized));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(BlendingSandbox::OnWindowResized));
 }
 
-void StencilSandbox::OnUpdate(OpenGLCore::Timestep ts)
+void BlendingSandbox::OnUpdate(Timestep ts)
 {
     // Update
     m_Camera->OnUpdate(ts);
 
     // Render
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClearColor(0.1f, 0.5f, 0.75f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
     glUseProgram(m_TextureUnlitShader->GetRendererID());
     m_TextureUnlitShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
 
     // Floor
-    glStencilMask(0x00);
     glBindVertexArray(m_QuadVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_MetalTexture);
@@ -164,7 +184,6 @@ void StencilSandbox::OnUpdate(OpenGLCore::Timestep ts)
 
     // Draw boxes
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
-    glStencilMask(0xFF); // enable writing to stencil buffer
     glBindVertexArray(m_CubeVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_TileTexture);
@@ -178,39 +197,53 @@ void StencilSandbox::OnUpdate(OpenGLCore::Timestep ts)
     m_TextureUnlitShader->UploadUniformMat4("u_Model", model2);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-    // Draw outlines
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilMask(0x00); // disable writing to stencil buffer
-    glDisable(GL_DEPTH_TEST);
-    glUseProgram(m_FlatColorShader->GetRendererID());
-    m_FlatColorShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
-    float scale = 1.1f;
-    model1 = glm::scale(model1, glm::vec3(scale, scale, scale));
-    m_FlatColorShader->UploadUniformMat4("u_Model", model1);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    model2 = glm::scale(model2, glm::vec3(scale, scale, scale));
-    m_FlatColorShader->UploadUniformMat4("u_Model", model2);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    // Vegetation
+    glBindVertexArray(m_QuadVAO);
+    glUseProgram(m_AlphaClipShader->GetRendererID());
+    m_AlphaClipShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_GrassSpriteTexture);
+    for (glm::vec3 position : m_VegetationPositions)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, position);
+        m_AlphaClipShader->UploadUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
 
-    glStencilMask(0xFF);
-    glStencilFunc(GL_ALWAYS, 0, 0xFF);
-    glEnable(GL_DEPTH_TEST);
+    // Windows (from farthest to nearest to solve depth issues)
+    std::map<float, glm::vec3> sortedWindows;
+    for (glm::vec3 position : m_WindowPositions)
+    {
+        glm::vec3 difference = m_Camera->GetPosition() - position;
+        float sqrMagnitude = glm::dot(difference, difference);
+        sortedWindows[sqrMagnitude] = position;
+    }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_TransparentWindow);
+    for (std::map<float, glm::vec3>::reverse_iterator it = sortedWindows.rbegin(); it != sortedWindows.rend(); ++it)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, it->second);
+        m_AlphaClipShader->UploadUniformMat4("u_Model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
 
     glBindVertexArray(0);
 }
 
-void StencilSandbox::OnImGuiRender()
+void BlendingSandbox::OnImGuiRender()
 {
 }
 
-void StencilSandbox::InitializeCamera()
+void BlendingSandbox::InitializeCamera()
 {
     PerspectiveProjInfo persProjInfo = { 45.0f, (float)1280, (float)720, 0.1f, 1000.0f };
     m_Camera = std::make_unique<FirstPersonCamera>(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f), persProjInfo);
 }
 
-bool StencilSandbox::OnWindowResized(WindowResizeEvent& event)
+bool BlendingSandbox::OnWindowResized(WindowResizeEvent& event)
 {
     unsigned int width = event.GetWidth();
     unsigned int height = event.GetHeight();

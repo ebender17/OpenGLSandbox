@@ -6,6 +6,7 @@ using namespace OpenGLCore;
 using namespace OpenGLCore::Utils;
 
 BasicLightingSandbox::BasicLightingSandbox()
+    : Layer("BasicLightingSandbox")
 {
 }
 

@@ -1,5 +1,6 @@
 #include "BasicLightingSandbox.h"
 #include "StencilSandbox.h"
+#include "BlendingSandbox.h"
 
 using namespace OpenGLCore;
 
@@ -9,7 +10,8 @@ public:
     Sandbox()
     {
         //  PushLayer(new BasicLightingSandbox());
-        PushLayer(new StencilSandbox());
+        // PushLayer(new StencilSandbox());
+        PushLayer(new BlendingSandbox());
     }
 };
 
