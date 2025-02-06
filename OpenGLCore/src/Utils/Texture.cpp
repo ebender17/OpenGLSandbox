@@ -51,4 +51,15 @@ namespace OpenGLCore::Utils {
         stbi_image_free(data);
     }
 
+    void GenerateTextureFramebuffer(GLuint* texture, unsigned int width, unsigned int height, GLint filteringOption)
+    {
+        glGenTextures(1, texture);
+        glBindTexture(GL_TEXTURE_2D, *texture);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filteringOption);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filteringOption);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
 }
