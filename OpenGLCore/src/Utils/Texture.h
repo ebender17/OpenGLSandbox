@@ -10,5 +10,7 @@ namespace OpenGLCore::Utils {
 
     void GenerateTextureFramebuffer(GLuint* texture, unsigned int width, unsigned int height, GLint filteringOption);
 
+    void GenerateTextureFramebufferMSAA(GLuint* texture, unsigned int width, unsigned int height, unsigned int samples);
+
 }
 

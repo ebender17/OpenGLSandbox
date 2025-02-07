@@ -62,4 +62,12 @@ namespace OpenGLCore::Utils {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    void GenerateTextureFramebufferMSAA(GLuint* texture, unsigned int width, unsigned int height, unsigned int samples)
+    {
+        glGenTextures(1, texture);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, *texture);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, width, height, GL_TRUE);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    }
+
 }

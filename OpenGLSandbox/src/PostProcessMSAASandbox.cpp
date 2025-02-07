@@ -1,18 +1,18 @@
-#include "PostProcessSandbox.h"
+#include "PostProcessMSAASandbox.h"
 
 using namespace OpenGLCore;
 using namespace OpenGLCore::Utils;
 
-PostProcessSandbox::PostProcessSandbox()
-    : Layer("PostProcessSandbox")
+PostProcessMSAASandbox::PostProcessMSAASandbox()
+    : Layer("PostProcessMSAASandbox")
 {
 }
 
-PostProcessSandbox::~PostProcessSandbox()
+PostProcessMSAASandbox::~PostProcessMSAASandbox()
 {
 }
 
-void PostProcessSandbox::OnAttach()
+void PostProcessMSAASandbox::OnAttach()
 {
     EnableGLDebugging();
     SetGLDebugLogLevel(DebugLogLevel::Notification);
@@ -142,24 +142,41 @@ void PostProcessSandbox::OnAttach()
 
     glBindVertexArray(0);
 
+    // configure MSAA framebuffer
     glGenFramebuffers(1, &m_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
-    GenerateTextureFramebuffer(&m_FramebufferTexture, WINDOW_WIDTH, WINDOW_HEIGHT, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FramebufferTexture, 0);
+    // create a multisampled color attachment texture
+    GenerateTextureFramebufferMSAA(&m_TextureColorBufferMultiSampled, WINDOW_WIDTH, WINDOW_HEIGHT, MSAA_SAMPLES);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_TextureColorBufferMultiSampled, 0);
+    // also create a multisampled renderbuffer object for depth and stencil attachments
     glGenRenderbuffers(1, &m_RBO);
     glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA_SAMPLES, GL_DEPTH24_STENCIL8, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        LOG_ERROR("Framebuffer is not complete!");
+        LOG_ERROR("MSAA framebuffer is not complete!");
     }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // configure second post-processing framebuffer
+    glGenFramebuffers(1, &m_IntermediateFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_IntermediateFBO);
+    GenerateTextureFramebuffer(&m_ScreenTexture, WINDOW_WIDTH, WINDOW_HEIGHT, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ScreenTexture, 0); // we only need a color buffer
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        LOG_ERROR("Intermediate framebuffer is not complete!");
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
     // bind default framebuffer (main window)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void PostProcessSandbox::OnDetach()
+void PostProcessMSAASandbox::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
     glDeleteBuffers(1, &m_CubeVBO);
@@ -167,17 +184,19 @@ void PostProcessSandbox::OnDetach()
     glDeleteBuffers(1, &m_QuadVBO);
     glDeleteVertexArrays(1, &m_FullscreenVAO);
     glDeleteBuffers(1, &m_FullscreenVBO);
+
     glDeleteFramebuffers(1, &m_FBO);
     glDeleteRenderbuffers(1, &m_RBO);
+    glDeleteFramebuffers(1, &m_IntermediateFBO);
 }
 
-void PostProcessSandbox::OnEvent(Event& event)
+void PostProcessMSAASandbox::OnEvent(Event& event)
 {
     EventDispatcher dispatcher(event);
-    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(PostProcessSandbox::OnWindowResized));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(PostProcessMSAASandbox::OnWindowResized));
 }
 
-void PostProcessSandbox::OnUpdate(Timestep ts)
+void PostProcessMSAASandbox::OnUpdate(Timestep ts)
 {
     // Update
     m_Camera->OnUpdate(ts);
@@ -190,7 +209,12 @@ void PostProcessSandbox::OnUpdate(Timestep ts)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     DrawScene();
 
-    // second pass
+    // blit multisampled buffer(s) to normal colorbuffer of intermediate FBO. Image is stored in screenTexture
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_IntermediateFBO);
+    glBlitFramebuffer(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    // draw scene as normal in multisampled buffers
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -202,11 +226,11 @@ void PostProcessSandbox::OnUpdate(Timestep ts)
     glBindVertexArray(m_FullscreenVAO);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_FramebufferTexture);
+    glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void PostProcessSandbox::OnImGuiRender()
+void PostProcessMSAASandbox::OnImGuiRender()
 {
     static int currentOption = 0;
     ImGui::Begin("Post Process Settings");
@@ -223,14 +247,14 @@ void PostProcessSandbox::OnImGuiRender()
     ImGui::End();
 }
 
-void PostProcessSandbox::InitializeCamera()
+void PostProcessMSAASandbox::InitializeCamera()
 {
     PerspectiveProjInfo persProjInfo = { 45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 1000.0f };
     m_Camera = std::make_unique<FirstPersonCamera>(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f), persProjInfo);
 }
 
-bool PostProcessSandbox::OnWindowResized(OpenGLCore::WindowResizeEvent& event)
+bool PostProcessMSAASandbox::OnWindowResized(OpenGLCore::WindowResizeEvent& event)
 {
     unsigned int width = event.GetWidth();
     unsigned int height = event.GetHeight();
@@ -240,7 +264,7 @@ bool PostProcessSandbox::OnWindowResized(OpenGLCore::WindowResizeEvent& event)
     return false;
 }
 
-void PostProcessSandbox::DrawScene()
+void PostProcessMSAASandbox::DrawScene()
 {
     glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
     glm::vec3 camPos = m_Camera->GetPosition();

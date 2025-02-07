@@ -3,7 +3,7 @@
 #include <OpenGLCore.h>
 #include <OpenGLCoreUtils.h>
 
-class PostProcessSandbox : public OpenGLCore::Layer
+class PostProcessMSAASandbox : public OpenGLCore::Layer
 {
 public:
     enum class PostProcesOptions
@@ -14,8 +14,8 @@ public:
         Blur
     };
 public:
-    PostProcessSandbox();
-    virtual ~PostProcessSandbox();
+    PostProcessMSAASandbox();
+    virtual ~PostProcessMSAASandbox();
 
     virtual void OnAttach() override;
     virtual void OnDetach() override;
@@ -33,12 +33,15 @@ private:
     GLuint m_QuadVBO;
     GLuint m_FullscreenVAO;
     GLuint m_FullscreenVBO;
+
     GLuint m_FBO;
     GLuint m_RBO;
+    GLuint m_IntermediateFBO;
 
     GLuint m_WoodenBoxTexture;
     GLuint m_MetalTexture;
-    GLuint m_FramebufferTexture;
+    GLuint m_TextureColorBufferMultiSampled;
+    GLuint m_ScreenTexture;
 
     OpenGLCore::Utils::Shader* m_TextureUnlitShader;
     OpenGLCore::Utils::Shader* m_FullScreenQuadShader;
@@ -49,3 +52,4 @@ private:
 
     PostProcesOptions m_PostProcessOption = PostProcesOptions::Inversion;
 };
+
