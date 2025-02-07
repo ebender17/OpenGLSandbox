@@ -23,6 +23,7 @@ void BlendingSandbox::OnAttach()
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_MULTISAMPLE);
 
     // vertex position, tex coords
     float vertices[] = {
@@ -110,8 +111,8 @@ void BlendingSandbox::OnAttach()
 
     GenerateTexture2D("assets/textures/tile.png", &m_TileTexture, GL_REPEAT, GL_LINEAR);
     GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR);
-    GenerateTexture2D("assets/textures/transparent-window.png", &m_TransparentWindow, GL_REPEAT, GL_LINEAR);
-    GenerateTexture2D("assets/textures/flat-grass-sprite.png", &m_GrassSpriteTexture, GL_REPEAT, GL_LINEAR);
+    GenerateTexture2D("assets/textures/transparent-window.png", &m_TransparentWindow, GL_CLAMP, GL_LINEAR);
+    GenerateTexture2D("assets/textures/flat-grass-sprite.png", &m_GrassSpriteTexture, GL_CLAMP, GL_LINEAR);
 
     m_TextureUnlitShader = Shader::FromGLSLTextFiles(
         "assets/shaders/textureunlit.vert.glsl",

@@ -48,6 +48,7 @@ namespace OpenGLCore {
             s_GLFWInitialized = true;
         }
 
+        glfwWindowHint(GLFW_SAMPLES, MSAA_SAMPLES);
         m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 
         glfwMakeContextCurrent(m_Window);

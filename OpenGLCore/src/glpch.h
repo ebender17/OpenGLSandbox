@@ -16,4 +16,5 @@
 
 #ifdef OPENGLCORE_PLATFORM_WINDOWS
     #include <Windows.h>
+    #define MSAA_SAMPLES 4
 #endif
