@@ -18,6 +18,9 @@ project "OpenGLCore"
         "vendor/stb_image/**.cpp",
         "vendor/glm/glm/**.hpp",
         "vendor/glm/glm/**.inl",
+        "vendor/tiny_gltf/**.h",
+        "vendor/tiny_glft/**.hpp",
+        "vendor/tiny_gltf/**.cpp"
     }
 
     defines
@@ -35,7 +38,7 @@ project "OpenGLCore"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
-        "%{IncludeDir.tinyxml}"
+        "%{IncludeDir.tiny_gltf}"
     }
 
     links 
