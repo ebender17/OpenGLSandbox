@@ -188,6 +188,9 @@ void PostProcessMSAASandbox::OnDetach()
     glDeleteFramebuffers(1, &m_FBO);
     glDeleteRenderbuffers(1, &m_RBO);
     glDeleteFramebuffers(1, &m_IntermediateFBO);
+
+    delete m_TextureUnlitShader;
+    delete m_FullScreenQuadShader;
 }
 
 void PostProcessMSAASandbox::OnEvent(Event& event)

@@ -130,6 +130,9 @@ void StencilSandbox::OnDetach()
     glDeleteVertexArrays(1, &m_QuadVAO);
     glDeleteBuffers(1, &m_CubeVBO);
     glDeleteBuffers(1, &m_QuadVBO);
+
+    delete m_FlatColorShader;
+    delete m_TextureUnlitShader;
 }
 
 void StencilSandbox::OnEvent(OpenGLCore::Event& event)
