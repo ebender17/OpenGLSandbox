@@ -136,6 +136,8 @@ void BasicLightingSandbox::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
     glDeleteVertexArrays(1, &m_VBO);
+
+    delete m_PhongShader;
 }
 
 void BasicLightingSandbox::OnEvent(OpenGLCore::Event& event)

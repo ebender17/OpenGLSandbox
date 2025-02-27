@@ -169,6 +169,9 @@ void PostProcessSandbox::OnDetach()
     glDeleteBuffers(1, &m_FullscreenVBO);
     glDeleteFramebuffers(1, &m_FBO);
     glDeleteRenderbuffers(1, &m_RBO);
+
+    delete m_TextureUnlitShader;
+    delete m_FullScreenQuadShader;
 }
 
 void PostProcessSandbox::OnEvent(Event& event)

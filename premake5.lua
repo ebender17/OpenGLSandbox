@@ -23,6 +23,7 @@ IncludeDir["Glad"] = "vendor/Glad/include"
 IncludeDir["ImGui"] = "vendor/imgui"
 IncludeDir["glm"] = "vendor/glm"
 IncludeDir["stb_image"] = "vendor/stb_image"
+IncludeDir["tiny_gltf"] = "vendor/tiny_gltf"
 
 -- Projects
 group "Dependencies"

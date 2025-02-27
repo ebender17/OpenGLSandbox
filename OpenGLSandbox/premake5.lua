@@ -20,6 +20,7 @@ project "OpenGLSandbox"
         "../OpenGLCore/%{IncludeDir.Glad}",
         "../OpenGLCore/%{IncludeDir.glm}",
         "../OpenGLCore/%{IncludeDir.ImGui}",
+        "../OpenGLCore/%{IncludeDir.tiny_gltf}",
         "../OpenGLCore/vendor",
         "../OpenGLCore/vendor/spdlog/include",
     }
