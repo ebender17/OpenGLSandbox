@@ -3,7 +3,7 @@
 #include "BlendingSandbox.h"
 #include "PostProcessSandbox.h"
 #include "PostProcessMSAASandbox.h"
-#include "gltfStaticModelSandbox.h"
+#include "gltfModelSandbox.h"
 
 using namespace OpenGLCore;
 
@@ -17,7 +17,7 @@ public:
         // PushLayer(new BlendingSandbox());
         // PushLayer(new PostProcessSandbox());
         // PushLayer(new PostProcessMSAASandbox());
-        PushLayer(new gltfStaticModelSandbox());
+        PushLayer(new gltfModelSandbox());
     }
 };
 
