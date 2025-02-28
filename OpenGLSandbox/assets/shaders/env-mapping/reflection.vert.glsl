@@ -11,16 +11,13 @@ layout(location = 7) in vec4 a_Weights;
 
 layout (location = 0) out vec3 v_Position;
 layout (location = 1) out vec3 v_Normal;
-layout (location = 2) out vec2 v_TexCoords;
 
 uniform mat4 u_Model;
 uniform mat4 u_ViewProjection;
 
 void main()
 {
-    v_Position = a_Position;
-    v_TexCoords = a_TexCoord0;
     v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
-    mat4 MVP = u_ViewProjection * u_Model;
-    gl_Position = MVP * vec4(a_Position, 1.0);
+    v_Position = vec3(u_Model * vec4(a_Position, 1.0));
+    gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
 }

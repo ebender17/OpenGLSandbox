@@ -12,5 +12,7 @@ namespace OpenGLCore::Utils {
 
     void GenerateTextureFramebufferMSAA(GLuint* texture, unsigned int width, unsigned int height, unsigned int samples);
 
+    void GenerateCubemapTexture(const std::vector<std::string>& faces, GLuint* texture, GLint filteringOption);
+
 }
 

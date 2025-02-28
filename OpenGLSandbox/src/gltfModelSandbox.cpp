@@ -20,7 +20,7 @@ void gltfModelSandbox::OnAttach()
     InitializeCamera();
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CW);
     glEnable(GL_MULTISAMPLE);
