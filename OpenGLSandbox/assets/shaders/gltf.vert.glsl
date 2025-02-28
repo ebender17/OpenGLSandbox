@@ -20,7 +20,7 @@ void main()
 {
     v_Position = a_Position;
     v_TexCoords = a_TexCoord0;
+    v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
     mat4 MVP = u_ViewProjection * u_Model;
-    v_Normal = normalize(mat3(MVP) * a_Normal);
     gl_Position = MVP * vec4(a_Position, 1.0);
 }

@@ -25,4 +25,3 @@ private:
 
     OpenGLCore::Utils::Shader* m_TextureUnlitShader;
 };
-
