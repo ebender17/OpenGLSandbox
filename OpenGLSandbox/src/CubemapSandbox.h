@@ -38,6 +38,7 @@ private:
     // TODO : create struct or class to hold these together
     tinygltf::Model* m_Model;
     std::pair<GLuint, std::map<int, GLuint>> m_VaoAndEbos;
+
     OpenGLCore::Utils::Shader* m_ReflectionShader;
     OpenGLCore::Utils::Shader* m_RefractionShader;
     float m_FromRefractiveIndex = RefractiveIndex::Air;
