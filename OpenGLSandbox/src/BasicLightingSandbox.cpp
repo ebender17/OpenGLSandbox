@@ -76,17 +76,26 @@ void BasicLightingSandbox::OnAttach()
     glGenVertexArrays(1, &m_CubeVAO);
     glBindVertexArray(m_CubeVAO);
 
-    glGenBuffers(1, &m_VBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    GLuint cubeVBO;
+    glGenBuffers(1, &cubeVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(2, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
+    glBindVertexArray(0);
+    glDeleteBuffers(1, &cubeVBO);
+
+    glGenBuffers(1, &m_UBOMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // define range of uniform buffer obj to link to uniform binding point 0
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UBOMatrices, 0, sizeof(glm::mat4));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // Load and create textures
     GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_Material.DiffuseId, GL_REPEAT, GL_LINEAR);
@@ -135,8 +144,7 @@ void BasicLightingSandbox::OnAttach()
 void BasicLightingSandbox::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
-    glDeleteVertexArrays(1, &m_VBO);
-
+    glDeleteBuffers(1, &m_UBOMatrices);
     delete m_PhongShader;
 }
 
@@ -158,7 +166,11 @@ void BasicLightingSandbox::OnUpdate(OpenGLCore::Timestep ts)
     glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
     glm::vec3 camPos = m_Camera->GetPosition();
     glUseProgram(m_PhongShader->GetRendererID());
-    m_PhongShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewProjectionMatrix));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     m_PhongShader->UploadUniformFloat3("u_ViewPos", camPos);
     m_PhongShader->UploadUniformFloat("u_Time", glfwGetTime());
     // Spotlight

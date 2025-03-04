@@ -19,9 +19,12 @@ private:
     bool OnWindowResized(OpenGLCore::WindowResizeEvent& event);
 private:
     std::unique_ptr<OpenGLCore::Utils::FirstPersonCamera> m_Camera;
+
     // TODO : create struct or class to hold these together
     tinygltf::Model* m_Model;
     std::pair<GLuint, std::map<int, GLuint>> m_VaoAndEbos;
+
+    GLuint m_UBOMatrices;
 
     OpenGLCore::Utils::Shader* m_TextureUnlitShader;
 };

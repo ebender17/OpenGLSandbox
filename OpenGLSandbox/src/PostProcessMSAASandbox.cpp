@@ -90,38 +90,44 @@ void PostProcessMSAASandbox::OnAttach()
          1.0f,  1.0f,  1.0f, 1.0f
     };
 
+    GLuint cubeVBO;
     glGenVertexArrays(1, &m_CubeVAO);
     glBindVertexArray(m_CubeVAO);
-    glGenBuffers(1, &m_CubeVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_CubeVBO);
+    glGenBuffers(1, &cubeVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
+    glDeleteBuffers(1, &cubeVBO);
 
+    GLuint quadVBO;
     glGenVertexArrays(1, &m_QuadVAO);
     glBindVertexArray(m_QuadVAO);
-    glGenBuffers(1, &m_QuadVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_QuadVBO);
+    glGenBuffers(1, &quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
+    glDeleteBuffers(1, &quadVBO);
 
+    GLuint fullscreenVBO;
     glGenVertexArrays(1, &m_FullscreenVAO);
     glBindVertexArray(m_FullscreenVAO);
-    glGenBuffers(1, &m_FullscreenVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_FullscreenVBO);
+    glGenBuffers(1, &fullscreenVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, fullscreenVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(fullscreenQuadVertices), fullscreenQuadVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glBindVertexArray(0);
+    glDeleteBuffers(1, &fullscreenVBO);
 
     GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_WoodenBoxTexture, GL_REPEAT, GL_LINEAR);
     GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR);
@@ -139,8 +145,6 @@ void PostProcessMSAASandbox::OnAttach()
     );
     glUseProgram(m_FullScreenQuadShader->GetRendererID());
     m_FullScreenQuadShader->UploadUniformInt("u_ScreenTexture", 0);
-
-    glBindVertexArray(0);
 
     // configure MSAA framebuffer
     glGenFramebuffers(1, &m_FBO);
@@ -174,16 +178,20 @@ void PostProcessMSAASandbox::OnAttach()
 
     // bind default framebuffer (main window)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glGenBuffers(1, &m_UBOMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UBOMatrices, 0, sizeof(glm::mat4));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void PostProcessMSAASandbox::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
-    glDeleteBuffers(1, &m_CubeVBO);
     glDeleteVertexArrays(1, &m_QuadVAO);
-    glDeleteBuffers(1, &m_QuadVBO);
     glDeleteVertexArrays(1, &m_FullscreenVAO);
-    glDeleteBuffers(1, &m_FullscreenVBO);
 
     glDeleteFramebuffers(1, &m_FBO);
     glDeleteRenderbuffers(1, &m_RBO);
@@ -210,6 +218,12 @@ void PostProcessMSAASandbox::OnUpdate(Timestep ts)
     glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewProjectionMatrix));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     DrawScene();
 
     // blit multisampled buffer(s) to normal colorbuffer of intermediate FBO. Image is stored in screenTexture
@@ -269,12 +283,8 @@ bool PostProcessMSAASandbox::OnWindowResized(OpenGLCore::WindowResizeEvent& even
 
 void PostProcessMSAASandbox::DrawScene()
 {
-    glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
-    glm::vec3 camPos = m_Camera->GetPosition();
-    glUseProgram(m_TextureUnlitShader->GetRendererID());
-    m_TextureUnlitShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
-
     // Floor
+    glUseProgram(m_TextureUnlitShader->GetRendererID());
     glDisable(GL_CULL_FACE);
     glBindVertexArray(m_QuadVAO);
     glActiveTexture(GL_TEXTURE0);

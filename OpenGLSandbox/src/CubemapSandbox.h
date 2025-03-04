@@ -22,6 +22,8 @@ private:
 private:
     std::unique_ptr<OpenGLCore::Utils::FirstPersonCamera> m_Camera;
 
+    GLuint m_UBOMatrices;
+
     GLuint m_SkyboxVAO;
     OpenGLCore::Utils::Shader* m_SkyboxShader;
     std::vector<std::string> m_Faces

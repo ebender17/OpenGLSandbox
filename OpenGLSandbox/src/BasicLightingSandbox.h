@@ -33,8 +33,9 @@ private:
 
     OpenGLCore::Utils::Shader* m_PhongShader;
 
+    GLuint m_UBOMatrices;
+
     GLuint m_CubeVAO;
-    GLuint m_VBO;
 
     PhongMaterial m_Material;
 

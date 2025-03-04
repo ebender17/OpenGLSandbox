@@ -96,6 +96,13 @@ void CubemapSandbox::OnAttach()
     m_VaoAndEbos = gltfModel::BindModel(*m_Model);
     gltfModel::PrintModelData(*m_Model);
 
+    glGenBuffers(1, &m_UBOMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_UBOMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     m_ReflectionShader = Shader::FromGLSLTextFiles(
         "assets/shaders/env-mapping/reflection.vert.glsl",
         "assets/shaders/env-mapping/reflection.frag.glsl"
@@ -140,13 +147,16 @@ void CubemapSandbox::OnUpdate(OpenGLCore::Timestep ts)
     glm::mat4 proj = m_Camera->GetProjMatrix();
     glm::mat4 viewProjectionMatrix = proj * view;
 
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewProjectionMatrix));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     // Draw models
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_SkyboxTexture);
     glUseProgram(m_ReflectionShader->GetRendererID());
     m_ReflectionShader->UploadUniformFloat3("u_CameraPos", m_Camera->GetPosition());
     m_ReflectionShader->UploadUniformMat4("u_Model", glm::mat4(1.0f));
-    m_ReflectionShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
     gltfModel::DrawModel(m_VaoAndEbos, *m_Model);
 
     glUseProgram(m_RefractionShader->GetRendererID());
@@ -154,7 +164,6 @@ void CubemapSandbox::OnUpdate(OpenGLCore::Timestep ts)
     m_RefractionShader->UploadUniformFloat("u_ToRefractionIndex", m_ToRefractiveIndex);
     m_RefractionShader->UploadUniformFloat3("u_CameraPos", m_Camera->GetPosition());
     m_RefractionShader->UploadUniformMat4("u_Model", glm::translate(glm::mat4(1.0f), { 4.0, 0.0, 0.0 }));
-    m_RefractionShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
     gltfModel::DrawModel(m_VaoAndEbos, *m_Model);
 
     // Draw skybox last

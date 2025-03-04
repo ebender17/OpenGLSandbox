@@ -9,18 +9,22 @@ layout(location = 5) in vec4 a_Tangent;
 layout(location = 6) in ivec4 a_Joints;
 layout(location = 7) in vec4 a_Weights;
 
-layout (location = 0) out vec3 v_Position;
-layout (location = 1) out vec3 v_Normal;
-layout (location = 2) out vec2 v_TexCoords;
+out Varyings {
+    vec3 FragPos;
+    vec3 Normal;
+    vec2 TexCoords;
+} vs_out;
 
+layout (std140, binding = 0) uniform Matrices
+{
+    mat4 u_ViewProjection; 
+};
 uniform mat4 u_Model;
-uniform mat4 u_ViewProjection;
 
 void main()
 {
-    v_Position = a_Position;
-    v_TexCoords = a_TexCoord0;
-    v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
-    mat4 MVP = u_ViewProjection * u_Model;
-    gl_Position = MVP * vec4(a_Position, 1.0);
+    vs_out.FragPos = a_Position;
+    vs_out.TexCoords = a_TexCoord0;
+    vs_out.Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
+    gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
 }

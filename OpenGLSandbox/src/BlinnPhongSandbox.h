@@ -20,6 +20,8 @@ private:
 private:
     std::unique_ptr<OpenGLCore::Utils::FirstPersonCamera> m_Camera;
 
+    GLuint m_UBOMatrices;
+
     GLuint m_PlaneVAO;
 
     OpenGLCore::Utils::Shader* m_PhongBlinnPhongShader;
