@@ -10,7 +10,10 @@ out VS_OUT {
     vec2 TexCoords;
 } vs_out;
 
-uniform mat4 u_ViewProjection;
+layout (std140, binding = 0) uniform Matrices
+{
+    mat4 u_ViewProjection; 
+};
 
 void main()
 {

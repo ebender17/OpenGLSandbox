@@ -20,14 +20,14 @@ private:
 private:
     std::unique_ptr<OpenGLCore::Utils::FirstPersonCamera> m_Camera;
 
+    GLuint m_UBOMatrices;
+
     OpenGLCore::Utils::Shader* m_TextureUnlitShader;
     OpenGLCore::Utils::Shader* m_FlatColorShader;
     OpenGLCore::Utils::Shader* m_AlphaClipShader;
 
     GLuint m_CubeVAO;
-    GLuint m_CubeVBO;
     GLuint m_QuadVAO;
-    GLuint m_QuadVBO;
 
     GLuint m_TileTexture;
     GLuint m_MetalTexture;

@@ -36,6 +36,13 @@ void gltfModelSandbox::OnAttach()
         "assets/shaders/gltf.frag.glsl"
     );
     glUseProgram(m_TextureUnlitShader->GetRendererID());
+
+    glGenBuffers(1, &m_UBOMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UBOMatrices, 0, sizeof(glm::mat4));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void gltfModelSandbox::OnDetach()
@@ -61,10 +68,12 @@ void gltfModelSandbox::OnUpdate(OpenGLCore::Timestep ts)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
-    glUseProgram(m_TextureUnlitShader->GetRendererID());
-    m_TextureUnlitShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewProjectionMatrix));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // Draw cube
+    glUseProgram(m_TextureUnlitShader->GetRendererID());
     glm::mat4 model1 = glm::mat4(1.0f);
     model1 = glm::translate(model1, glm::vec3(-1.0f, 0.0f, -1.0f));
     m_TextureUnlitShader->UploadUniformMat4("u_Model", model1);

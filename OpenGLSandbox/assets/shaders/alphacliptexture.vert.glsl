@@ -5,8 +5,11 @@ layout (location = 1) in vec2 a_TexCoord;
 
 layout (location = 0) out vec2 v_TexCoords;
 
+layout (std140, binding = 0) uniform Matrices // binding layout specifier available OpenGL v4.2+
+{
+    mat4 u_ViewProjection; 
+};
 uniform mat4 u_Model;
-uniform mat4 u_ViewProjection;
 
 void main()
 {

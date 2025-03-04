@@ -27,12 +27,11 @@ private:
     bool OnWindowResized(OpenGLCore::WindowResizeEvent& event);
     void DrawScene();
 private:
+    GLuint m_UBOMatrices;
+
     GLuint m_CubeVAO;
-    GLuint m_CubeVBO;
     GLuint m_QuadVAO;
-    GLuint m_QuadVBO;
     GLuint m_FullscreenVAO;
-    GLuint m_FullscreenVBO;
 
     GLuint m_FBO;
     GLuint m_RBO;

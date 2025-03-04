@@ -80,27 +80,38 @@ void BlendingSandbox::OnAttach()
     };
 
     // Setup buffers
+    GLuint cubeVBO;
     glGenVertexArrays(1, &m_CubeVAO);
     glBindVertexArray(m_CubeVAO);
-    glGenBuffers(1, &m_CubeVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_CubeVBO);
+    glGenBuffers(1, &cubeVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
+    glDeleteBuffers(1, &cubeVBO);
 
+    GLuint quadVBO;
     glGenVertexArrays(1, &m_QuadVAO);
     glBindVertexArray(m_QuadVAO);
-    glGenBuffers(1, &m_QuadVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_QuadVBO);
+    glGenBuffers(1, &quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
+    glDeleteBuffers(1, &quadVBO);
+
+    glGenBuffers(1, &m_UBOMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UBOMatrices, 0, sizeof(glm::mat4));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     m_FlatColorShader = Shader::FromGLSLTextFiles(
         "assets/shaders/flatcolor.vert.glsl",
@@ -149,8 +160,6 @@ void BlendingSandbox::OnDetach()
 {
     glDeleteVertexArrays(1, &m_CubeVAO);
     glDeleteVertexArrays(1, &m_QuadVAO);
-    glDeleteBuffers(1, &m_CubeVBO);
-    glDeleteBuffers(1, &m_QuadVBO);
 
     delete m_FlatColorShader;
     delete m_TextureUnlitShader;
@@ -172,10 +181,12 @@ void BlendingSandbox::OnUpdate(Timestep ts)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
-    glUseProgram(m_TextureUnlitShader->GetRendererID());
-    m_TextureUnlitShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewProjectionMatrix));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // Floor
+    glUseProgram(m_TextureUnlitShader->GetRendererID());
     glBindVertexArray(m_QuadVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_MetalTexture);
@@ -204,7 +215,6 @@ void BlendingSandbox::OnUpdate(Timestep ts)
     // Vegetation
     glBindVertexArray(m_QuadVAO);
     glUseProgram(m_AlphaClipShader->GetRendererID());
-    m_AlphaClipShader->UploadUniformMat4("u_ViewProjection", viewProjectionMatrix);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_GrassSpriteTexture);
     for (glm::vec3 position : m_VegetationPositions)

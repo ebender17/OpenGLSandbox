@@ -12,8 +12,11 @@ layout(location = 7) in vec4 a_Weights;
 layout (location = 0) out vec3 v_Position;
 layout (location = 1) out vec3 v_Normal;
 
+layout (std140, binding = 0) uniform Matrices
+{
+    mat4 u_ViewProjection; 
+};
 uniform mat4 u_Model;
-uniform mat4 u_ViewProjection;
 
 void main()
 {
