@@ -7,7 +7,7 @@
 
 namespace OpenGLCore::Utils {
 
-    void GenerateTexture2D(const std::string& filepath, GLuint* texture, GLint wrapOption, GLint filteringOption)
+    void GenerateTexture2D(const std::string& filepath, GLuint* texture, GLint wrapOption, GLint filteringOption, bool issRGB)
     {
         int width, height, channels;
         stbi_set_flip_vertically_on_load(true);
@@ -29,11 +29,11 @@ namespace OpenGLCore::Utils {
             dataFormat = GL_RG;
             break;
         case 3:
-            internalFormat = GL_RGB8;
+            internalFormat = issRGB ? GL_SRGB8 : GL_RGB8;
             dataFormat = GL_RGB;
             break;
         case 4:
-            internalFormat = GL_RGBA8;
+            internalFormat = issRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8;
             dataFormat = GL_RGBA;
             break;
         default:

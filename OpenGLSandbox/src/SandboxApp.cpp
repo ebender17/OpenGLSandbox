@@ -22,8 +22,8 @@ public:
         // PushLayer(new PostProcessMSAASandbox());
         // PushLayer(new gltfModelSandbox());
         // PushLayer(new CubemapSandbox());
-        // PushLayer(new BlinnPhongSandbox());
-        PushLayer(new InstancingSandbox());
+        PushLayer(new BlinnPhongSandbox());
+        // PushLayer(new InstancingSandbox());
     }
 };
 

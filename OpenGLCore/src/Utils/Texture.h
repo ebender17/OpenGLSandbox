@@ -6,7 +6,7 @@
 
 namespace OpenGLCore::Utils {
 
-    void GenerateTexture2D(const std::string& filepath, GLuint* texture, GLint wrapOption, GLint filteringOption);
+    void GenerateTexture2D(const std::string& filepath, GLuint* texture, GLint wrapOption, GLint filteringOption, bool issRGB);
 
     void GenerateTextureFramebuffer(GLuint* texture, unsigned int width, unsigned int height, GLint filteringOption);
 
