@@ -121,8 +121,8 @@ void StencilSandbox::OnAttach()
     glUseProgram(m_FlatColorShader->GetRendererID());
     m_FlatColorShader->UploadUniformFloat4("u_Color", { 0.65f, 1.0f, 0.51f, 1.0f });
 
-    GenerateTexture2D("assets/textures/tile.png", &m_TileTexture, GL_REPEAT, GL_LINEAR);
-    GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR);
+    GenerateTexture2D("assets/textures/tile.png", &m_TileTexture, GL_REPEAT, GL_LINEAR, false);
+    GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR, false);
 
     m_TextureUnlitShader = Shader::FromGLSLTextFiles(
         "assets/shaders/textureunlit.vert.glsl",

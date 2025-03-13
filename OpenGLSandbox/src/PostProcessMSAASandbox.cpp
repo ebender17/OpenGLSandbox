@@ -129,8 +129,8 @@ void PostProcessMSAASandbox::OnAttach()
     glBindVertexArray(0);
     glDeleteBuffers(1, &fullscreenVBO);
 
-    GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_WoodenBoxTexture, GL_REPEAT, GL_LINEAR);
-    GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR);
+    GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_WoodenBoxTexture, GL_REPEAT, GL_LINEAR, false);
+    GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR, false);
 
     m_TextureUnlitShader = Shader::FromGLSLTextFiles(
         "assets/shaders/textureunlit.vert.glsl",

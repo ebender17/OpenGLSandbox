@@ -27,8 +27,18 @@ private:
     OpenGLCore::Utils::Shader* m_PhongBlinnPhongShader;
     GLuint m_WoodTexture;
 
-    glm::vec3 m_LightPos = { 0.0f, 0.0f, 0.0f };
-
     bool m_BlinnPhong = true;
+    glm::vec3 m_LightPositions[4] = {
+        glm::vec3(-3.0f, 0.0f, 0.0f),
+        glm::vec3(-1.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(3.0f, 0.0f, 0.0f)
+    };
+    glm::vec3 m_LightColors[4] = {
+        glm::vec3(0.25),
+        glm::vec3(0.50),
+        glm::vec3(0.75),
+        glm::vec3(1.00)
+    };
 };
 

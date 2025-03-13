@@ -144,6 +144,12 @@ namespace OpenGLCore::Utils {
         glUniform3f(location, value.x, value.y, value.z);
     }
 
+    void Shader::UploadUniformFloat3Array(const std::string& name, float* values, uint32_t count)
+    {
+        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+        glUniform3fv(location, count, values);
+    }
+
     void Shader::UploadUniformFloat4(const std::string& name, const glm::vec4& value)
     {
         GLint location = glGetUniformLocation(m_RendererID, name.c_str());

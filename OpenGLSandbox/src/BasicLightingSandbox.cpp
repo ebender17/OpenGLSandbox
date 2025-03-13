@@ -98,9 +98,9 @@ void BasicLightingSandbox::OnAttach()
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // Load and create textures
-    GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_Material.DiffuseId, GL_REPEAT, GL_LINEAR);
-    GenerateTexture2D("assets/textures/wooden-box-specular.png", &m_Material.SpecularId, GL_REPEAT, GL_LINEAR);
-    GenerateTexture2D("assets/textures/box-emissive.png", &m_Material.EmissionId, GL_REPEAT, GL_LINEAR);
+    GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_Material.DiffuseId, GL_REPEAT, GL_LINEAR, false);
+    GenerateTexture2D("assets/textures/wooden-box-specular.png", &m_Material.SpecularId, GL_REPEAT, GL_LINEAR, false);
+    GenerateTexture2D("assets/textures/box-emissive.png", &m_Material.EmissionId, GL_REPEAT, GL_LINEAR, false);
 
     m_PhongShader = Shader::FromGLSLTextFiles(
         "assets/shaders/phong.vert.glsl",

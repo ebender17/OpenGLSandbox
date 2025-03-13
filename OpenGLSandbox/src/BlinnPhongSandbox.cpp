@@ -56,7 +56,7 @@ void BlinnPhongSandbox::OnAttach()
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_UBOMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    GenerateTexture2D("assets/textures/wood.png", &m_WoodTexture, GL_REPEAT, GL_LINEAR);
+    GenerateTexture2D("assets/textures/wood.png", &m_WoodTexture, GL_REPEAT, GL_LINEAR, true);
 
     m_PhongBlinnPhongShader = Shader::FromGLSLTextFiles(
         "assets/shaders/blinnphong.vert.glsl",
@@ -65,6 +65,8 @@ void BlinnPhongSandbox::OnAttach()
 
     glUseProgram(m_PhongBlinnPhongShader->GetRendererID());
     m_PhongBlinnPhongShader->UploadUniformInt("u_Texture", 0);
+    m_PhongBlinnPhongShader->UploadUniformFloat3Array("u_LightPositions", &m_LightPositions[0][0], 4);
+    m_PhongBlinnPhongShader->UploadUniformFloat3Array("u_LightColors", &m_LightColors[0][0], 4);
 }
 
 void BlinnPhongSandbox::OnDetach()
@@ -86,8 +88,10 @@ void BlinnPhongSandbox::OnUpdate(OpenGLCore::Timestep ts)
     m_Camera->OnUpdate(ts);
 
     // Render
+    glDisable(GL_FRAMEBUFFER_SRGB);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_FRAMEBUFFER_SRGB);
 
     glm::mat4 viewProjectionMatrix = m_Camera->GetViewProjectionMatrix();
     glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
@@ -99,7 +103,6 @@ void BlinnPhongSandbox::OnUpdate(OpenGLCore::Timestep ts)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_WoodTexture);
     m_PhongBlinnPhongShader->UploadUniformFloat3("u_ViewPos", m_Camera->GetPosition());
-    m_PhongBlinnPhongShader->UploadUniformFloat3("u_LightPos", m_LightPos);
     m_PhongBlinnPhongShader->UploadUniformInt("u_Blinn", m_BlinnPhong);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
