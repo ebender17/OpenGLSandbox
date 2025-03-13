@@ -17,6 +17,7 @@ public:
 private:
     void InitializeCamera();
     bool OnWindowResized(OpenGLCore::WindowResizeEvent& event);
+    glm::vec3 GenerateRandomColor();
 private:
     std::unique_ptr<OpenGLCore::Utils::FirstPersonCamera> m_Camera;
 
@@ -24,6 +25,6 @@ private:
     GLuint m_CubeVAO;
     OpenGLCore::Utils::Shader* m_InstancedShader;
 
-    const int c_GridSize = 10;
+    const int c_GridSize = 100;
     const int c_NumberOfCubes = c_GridSize * c_GridSize;
 };

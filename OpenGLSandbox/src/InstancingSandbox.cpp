@@ -1,5 +1,7 @@
 #include "InstancingSandbox.h"
 
+#include <random>
+
 using namespace OpenGLCore;
 using namespace OpenGLCore::Utils;
 
@@ -87,9 +89,11 @@ void InstancingSandbox::OnAttach()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
     // Model matrix for cubes
-    const float spacing = 1.0f;
+    const float spacing = 4.0f;
     std::vector<glm::mat4> modelMatrices;
     modelMatrices.reserve(c_NumberOfCubes);
+    std::vector<glm::vec3> cubeColors;
+    cubeColors.reserve(c_NumberOfCubes);
 
     for (int x = 0; x < c_GridSize; ++x)
     {
@@ -98,6 +102,7 @@ void InstancingSandbox::OnAttach()
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(x * spacing, 0.0f, z * spacing));
             modelMatrices.push_back(model);
+            cubeColors.emplace_back(GenerateRandomColor());
         }
     }
 
@@ -105,7 +110,7 @@ void InstancingSandbox::OnAttach()
     GLuint instanceVBO;
     glGenBuffers(1, &instanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    // TODO : make sure std::vector is okay isntead of glm::mat4*
+    // matrices
     glBufferData(GL_ARRAY_BUFFER, c_NumberOfCubes * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
@@ -119,8 +124,17 @@ void InstancingSandbox::OnAttach()
     glVertexAttribDivisor(2, 1);
     glVertexAttribDivisor(3, 1);
     glVertexAttribDivisor(4, 1);
+    // colors
+    GLuint instanceColorsVBO;
+    glGenBuffers(1, &instanceColorsVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceColorsVBO);
+    glBufferData(GL_ARRAY_BUFFER, c_NumberOfCubes * sizeof(glm::vec3), &cubeColors[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glVertexAttribDivisor(5, 1);
 
     glBindVertexArray(0);
+    glDeleteBuffers(1, &instanceColorsVBO);
     glDeleteBuffers(1, &instanceVBO);
     glDeleteBuffers(1, &cubeVBO);
 
@@ -180,4 +194,12 @@ bool InstancingSandbox::OnWindowResized(OpenGLCore::WindowResizeEvent& event)
     m_Camera->SetAspectRatio(width, height);
     glViewport(0, 0, width, height);
     return false;
+}
+
+glm::vec3 InstancingSandbox::GenerateRandomColor()
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+    return glm::vec3(dist(gen), dist(gen), dist(gen));
 }
