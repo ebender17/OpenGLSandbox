@@ -6,6 +6,7 @@
 #include "gltfModelSandbox.h"
 #include "CubemapSandbox.h"
 #include "BlinnPhongSandbox.h"
+#include "InstancingSandbox.h"
 
 using namespace OpenGLCore;
 
@@ -21,7 +22,8 @@ public:
         // PushLayer(new PostProcessMSAASandbox());
         // PushLayer(new gltfModelSandbox());
         // PushLayer(new CubemapSandbox());
-        PushLayer(new BlinnPhongSandbox());
+        // PushLayer(new BlinnPhongSandbox());
+        PushLayer(new InstancingSandbox());
     }
 };
 
