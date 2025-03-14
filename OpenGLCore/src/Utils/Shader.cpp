@@ -33,7 +33,14 @@ namespace OpenGLCore::Utils {
         return shader;
     }
 
-    void Shader::LoadFromGLSLTextFiles(const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
+    Shader* Shader::FromGLSLTextFiles(const std::string& vertexShaderPath, const std::string& geometryShaderPath, const std::string& fragmentShaderPath)
+    {
+        Shader* shader = new Shader();
+        shader->LoadFromGLSLTextFiles(vertexShaderPath, fragmentShaderPath, geometryShaderPath);
+        return shader;
+    }
+
+    void Shader::LoadFromGLSLTextFiles(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geometryShaderPath)
     {
         std::string vertexSource = ReadFileAsString(vertexShaderPath);
         std::string fragmentSource = ReadFileAsString(fragmentShaderPath);
@@ -43,6 +50,12 @@ namespace OpenGLCore::Utils {
 
         GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexSource);
         glAttachShader(program, vertexShader);
+        if (!geometryShaderPath.empty())
+        {
+            std::string geometrySource = ReadFileAsString(geometryShaderPath);
+            GLuint geometryShader = CompileShader(GL_GEOMETRY_SHADER, geometrySource);
+            glAttachShader(program, geometryShader);
+        }
         GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentSource);
         glAttachShader(program, fragmentShader);
         glLinkProgram(program);
