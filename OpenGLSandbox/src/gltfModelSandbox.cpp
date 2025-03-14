@@ -3,6 +3,7 @@
 using namespace OpenGLCore;
 using namespace OpenGLCore::Utils;
 
+
 gltfModelSandbox::gltfModelSandbox()
     : Layer("gltfModelSandbox")
 {
@@ -35,7 +36,6 @@ void gltfModelSandbox::OnAttach()
         "assets/shaders/gltf.vert.glsl",
         "assets/shaders/gltf.frag.glsl"
     );
-    glUseProgram(m_TextureUnlitShader->GetRendererID());
 
     glGenBuffers(1, &m_UBOMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
@@ -72,7 +72,6 @@ void gltfModelSandbox::OnUpdate(OpenGLCore::Timestep ts)
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewProjectionMatrix));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    // Draw cube
     glUseProgram(m_TextureUnlitShader->GetRendererID());
     glm::mat4 model1 = glm::mat4(1.0f);
     model1 = glm::translate(model1, glm::vec3(-1.0f, 0.0f, -1.0f));
