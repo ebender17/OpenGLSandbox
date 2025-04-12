@@ -32,8 +32,10 @@ void DirectionalShadowMappingSandbox::OnAttach()
         c_ShadowMapWidth, c_ShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_DepthMapTexture, 0);
     glDrawBuffer(GL_NONE);
@@ -45,15 +47,43 @@ void DirectionalShadowMappingSandbox::OnAttach()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    m_ShadowMappingDepthShader = Shader::FromGLSLTextFiles(
-        "assets/shaders/shadow-mapping/shadow-mapping-depth.vert.glsl",
-        "assets/shaders/shadow-mapping/shadow-mapping-depth.frag.glsl"
+    m_DepthMapShader = Shader::FromGLSLTextFiles(
+        "assets/shaders/shadow-mapping/directional-shadow-mapping-depth.vert.glsl",
+        "assets/shaders/shadow-mapping/directional-shadow-mapping-depth.frag.glsl"
     );
     ConfigureLightSpaceMatrix();
 
-    // quad VAO
-    // TODO : scale instead of setting position here
+    // debug quad VAO
     float quadVertices[] = {
+        // positions        // texture coords
+        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+    };
+
+    GLuint quadVBO;
+    glGenVertexArrays(1, &m_QuadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(m_QuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    m_DebugDepthMapShader = Shader::FromGLSLTextFiles(
+        "assets/shaders/shadow-mapping/directional-shadow-mapping-debug.vert.glsl",
+        "assets/shaders/shadow-mapping/directional-shadow-mapping-debug.frag.glsl"
+    );
+    glUseProgram(m_DebugDepthMapShader->GetRendererID());
+    m_DebugDepthMapShader->UploadUniformInt("u_DepthMap", 0);
+
+    // plane VAO
+    // TODO : scale instead of setting position here
+    float planeVertices[] = {
         // positions            // normals         // texcoords
          25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
         -25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
@@ -63,12 +93,12 @@ void DirectionalShadowMappingSandbox::OnAttach()
         -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
          25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
     };
-    GLuint quadVBO;
-    glGenVertexArrays(1, &m_QuadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(m_QuadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    GLuint planeVBO;
+    glGenVertexArrays(1, &m_PlaneVAO);
+    glGenBuffers(1, &planeVBO);
+    glBindVertexArray(m_PlaneVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
@@ -79,48 +109,48 @@ void DirectionalShadowMappingSandbox::OnAttach()
 
     // cube VAO
     float cubeVertices[] = {
-        // positions            // normals         // texcoords
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  0.0f, -1.0f,  0.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  1.0f,  0.0f,
+        // back face
+        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+        -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+        // front face
+        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+         1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+        // left face
+        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+        -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+        // right face
+         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+         1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+         // bottom face
+         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+          1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+          1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+          1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+         -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+         // top face
+         -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+          1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+          1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+          1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+         -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+         -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
     };
 
     glGenVertexArrays(1, &m_CubeVAO);
@@ -129,12 +159,12 @@ void DirectionalShadowMappingSandbox::OnAttach()
     glGenBuffers(1, &cubeVBO);
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glBindVertexArray(0);
     glDeleteBuffers(1, &cubeVBO);
 
@@ -147,8 +177,8 @@ void DirectionalShadowMappingSandbox::OnAttach()
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     m_ShadowMappingShader = Shader::FromGLSLTextFiles(
-        "assets/shaders/shadow-mapping/shadow-mapping.vert.glsl",
-        "assets/shaders/shadow-mapping/shadow-mapping.frag.glsl"
+        "assets/shaders/shadow-mapping/directional-shadow-mapping.vert.glsl",
+        "assets/shaders/shadow-mapping/directional-shadow-mapping.frag.glsl"
     );
 
     GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_WoodenCrateTexture, GL_REPEAT, GL_LINEAR, false);
@@ -159,10 +189,11 @@ void DirectionalShadowMappingSandbox::OnAttach()
 
 void DirectionalShadowMappingSandbox::OnDetach()
 {
-    glDeleteVertexArrays(1, &m_QuadVAO);
+    glDeleteVertexArrays(1, &m_PlaneVAO);
     glDeleteVertexArrays(1, &m_CubeVAO);
     glDeleteBuffers(1, &m_UBOMatrices);
-    delete m_ShadowMappingDepthShader;
+    delete m_DepthMapShader;
+    delete m_DebugDepthMapShader;
     delete m_ShadowMappingShader;
 }
 
@@ -185,20 +216,21 @@ void DirectionalShadowMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
 
     // First pass: Render to depth map
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, c_ShadowMapWidth, c_ShadowMapHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
-    glUseProgram(m_ShadowMappingDepthShader->GetRendererID());
-    m_ShadowMappingDepthShader->UploadUniformMat4("u_LightSpaceMatrix", m_LightSpaceMatrix);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glUseProgram(m_DepthMapShader->GetRendererID());
+    m_DepthMapShader->UploadUniformMat4("u_LightSpaceMatrix", m_LightSpaceMatrix);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_WoodenCrateTexture);
-    RenderScene(*m_ShadowMappingDepthShader);
+    RenderScene(*m_DepthMapShader);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Second pass: Render scene as normal with shadow mapping (using depth map)
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(m_ShadowMappingShader->GetRendererID());
     glm::vec3 camPos = m_Camera->GetPosition();
     m_ShadowMappingShader->UploadUniformFloat3("u_ViewPos", camPos);
     m_ShadowMappingShader->UploadUniformFloat3("u_LightPos", m_LightPos);
@@ -208,6 +240,14 @@ void DirectionalShadowMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_DepthMapTexture);
     RenderScene(*m_ShadowMappingShader);
+
+    // Debug Quad
+    /* glUseProgram(m_DebugDepthMapShader->GetRendererID());
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_DepthMapTexture);
+    glBindVertexArray(m_QuadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0); */
 }
 
 void DirectionalShadowMappingSandbox::OnImGuiRender()
@@ -246,7 +286,7 @@ void DirectionalShadowMappingSandbox::RenderScene(OpenGLCore::Utils::Shader& sha
     // floor
     glm::mat4 model = glm::mat4(1.0f);
     shader.UploadUniformMat4("u_Model", model);
-    glBindVertexArray(m_QuadVAO);
+    glBindVertexArray(m_PlaneVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     // cubes
     glBindVertexArray(m_CubeVAO);

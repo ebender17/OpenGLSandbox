@@ -25,12 +25,14 @@ private:
     glm::vec3 m_LightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
     glm::mat4 m_LightSpaceMatrix;
 
-    OpenGLCore::Utils::Shader* m_ShadowMappingDepthShader;
+    OpenGLCore::Utils::Shader* m_DepthMapShader;
+    OpenGLCore::Utils::Shader* m_DebugDepthMapShader;
     OpenGLCore::Utils::Shader* m_ShadowMappingShader;
 
     GLuint m_UBOMatrices;
 
     GLuint m_CubeVAO;
+    GLuint m_PlaneVAO;
     GLuint m_QuadVAO;
     GLuint m_DepthMapFBO;
     GLuint m_DepthMapTexture;
