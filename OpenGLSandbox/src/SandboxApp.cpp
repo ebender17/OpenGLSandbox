@@ -9,6 +9,7 @@
 #include "InstancingSandbox.h"
 #include "GeometryShaderSandbox.h"
 #include "NormalMappingSandbox.h"
+#include "DirectionalShadowMappingSandbox.h"
 
 using namespace OpenGLCore;
 
@@ -27,7 +28,8 @@ public:
         // PushLayer(new BlinnPhongSandbox());
         // PushLayer(new InstancingSandbox());
         // PushLayer(new GeometryShaderSandbox());
-        PushLayer(new NormalMappingSandbox());
+        // PushLayer(new NormalMappingSandbox());
+        PushLayer(new DirectionalShadowMappingSandbox());
     }
 };
 
