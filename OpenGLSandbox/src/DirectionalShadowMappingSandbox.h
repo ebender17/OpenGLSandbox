@@ -40,5 +40,6 @@ private:
     const unsigned int c_ShadowMapWidth = 1024, c_ShadowMapHeight = 1024;
 
     GLuint m_WoodenCrateTexture;
+    GLuint m_MetalTexture;
 };
 

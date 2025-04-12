@@ -165,10 +165,6 @@ void NormalMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
 
 void NormalMappingSandbox::OnImGuiRender()
 {
-    static bool isChecked = true;
-
-    ImGui::Begin("Settings");
-    ImGui::End();
 }
 
 void NormalMappingSandbox::InitializeCamera()

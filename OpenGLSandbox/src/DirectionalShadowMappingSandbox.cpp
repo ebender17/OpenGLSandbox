@@ -30,6 +30,7 @@ void DirectionalShadowMappingSandbox::OnAttach()
     glBindTexture(GL_TEXTURE_2D, m_DepthMapTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
         c_ShadowMapWidth, c_ShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -73,6 +74,7 @@ void DirectionalShadowMappingSandbox::OnAttach()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
+    glDeleteBuffers(1, &quadVBO);
 
     m_DebugDepthMapShader = Shader::FromGLSLTextFiles(
         "assets/shaders/shadow-mapping/directional-shadow-mapping-debug.vert.glsl",
@@ -82,16 +84,15 @@ void DirectionalShadowMappingSandbox::OnAttach()
     m_DebugDepthMapShader->UploadUniformInt("u_DepthMap", 0);
 
     // plane VAO
-    // TODO : scale instead of setting position here
     float planeVertices[] = {
         // positions            // normals         // texcoords
-         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f,
         -25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
 
-         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-         25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
+         25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f,
+        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+         25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
     };
     GLuint planeVBO;
     glGenVertexArrays(1, &m_PlaneVAO);
@@ -106,13 +107,14 @@ void DirectionalShadowMappingSandbox::OnAttach()
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glBindVertexArray(0);
+    glDeleteBuffers(1, &planeVBO);
 
     // cube VAO
     float cubeVertices[] = {
         // back face
         -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
          1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right
          1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
         -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
         -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
@@ -133,10 +135,10 @@ void DirectionalShadowMappingSandbox::OnAttach()
         // right face
          1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
          1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right
          1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
          1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-         1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+         1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left
          // bottom face
          -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
           1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
@@ -147,10 +149,10 @@ void DirectionalShadowMappingSandbox::OnAttach()
          // top face
          -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
           1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-          1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+          1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right
           1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
          -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-         -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+         -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left
     };
 
     glGenVertexArrays(1, &m_CubeVAO);
@@ -172,7 +174,6 @@ void DirectionalShadowMappingSandbox::OnAttach()
     glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    // define range of uniform buffer obj to link to uniform binding point 0
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UBOMatrices, 0, sizeof(glm::mat4));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -180,15 +181,17 @@ void DirectionalShadowMappingSandbox::OnAttach()
         "assets/shaders/shadow-mapping/directional-shadow-mapping.vert.glsl",
         "assets/shaders/shadow-mapping/directional-shadow-mapping.frag.glsl"
     );
-
-    GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_WoodenCrateTexture, GL_REPEAT, GL_LINEAR, false);
     glUseProgram(m_ShadowMappingShader->GetRendererID());
     m_ShadowMappingShader->UploadUniformInt("u_DiffuseTexture", 0);
     m_ShadowMappingShader->UploadUniformInt("u_ShadowMap", 1);
+
+    GenerateTexture2D("assets/textures/wooden-box-diffuse.png", &m_WoodenCrateTexture, GL_REPEAT, GL_LINEAR, false);
+    GenerateTexture2D("assets/textures/metal.png", &m_MetalTexture, GL_REPEAT, GL_LINEAR, false);
 }
 
 void DirectionalShadowMappingSandbox::OnDetach()
 {
+    glDeleteVertexArrays(1, &m_QuadVAO);
     glDeleteVertexArrays(1, &m_PlaneVAO);
     glDeleteVertexArrays(1, &m_CubeVAO);
     glDeleteBuffers(1, &m_UBOMatrices);
@@ -222,10 +225,12 @@ void DirectionalShadowMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
     glClear(GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_DepthMapShader->GetRendererID());
     m_DepthMapShader->UploadUniformMat4("u_LightSpaceMatrix", m_LightSpaceMatrix);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_WoodenCrateTexture);
     RenderScene(*m_DepthMapShader);
+    // float sample = 0;
+    // glReadPixels(c_ShadowMapWidth / 2, c_ShadowMapHeight / 2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &sample);
+    // printf("center depth = %f\n", sample);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
     // Second pass: Render scene as normal with shadow mapping (using depth map)
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -242,12 +247,15 @@ void DirectionalShadowMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
     RenderScene(*m_ShadowMappingShader);
 
     // Debug Quad
-    /* glUseProgram(m_DebugDepthMapShader->GetRendererID());
+    /* glDisable(GL_DEPTH_TEST);
+    glUseProgram(m_DebugDepthMapShader->GetRendererID());
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_DepthMapTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
     glBindVertexArray(m_QuadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0); */
+    glBindVertexArray(0);
+    glEnable(GL_DEPTH_TEST);  */
 }
 
 void DirectionalShadowMappingSandbox::OnImGuiRender()
@@ -284,11 +292,14 @@ void DirectionalShadowMappingSandbox::ConfigureLightSpaceMatrix()
 void DirectionalShadowMappingSandbox::RenderScene(OpenGLCore::Utils::Shader& shader)
 {
     // floor
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_MetalTexture);
     glm::mat4 model = glm::mat4(1.0f);
     shader.UploadUniformMat4("u_Model", model);
     glBindVertexArray(m_PlaneVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     // cubes
+    glBindTexture(GL_TEXTURE_2D, m_WoodenCrateTexture);
     glBindVertexArray(m_CubeVAO);
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
