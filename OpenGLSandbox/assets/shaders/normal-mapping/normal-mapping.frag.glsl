@@ -3,7 +3,7 @@
 out vec4 FragColor;
 
 in VS_OUT {
-    vec3 FragPos;
+    vec3 FragWorldPos;
     vec2 TexCoords;
     vec3 TangentLightPos;
     vec3 TangentViewPos;
