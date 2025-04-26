@@ -127,7 +127,6 @@ void NormalandParallaxMappingSandbox::OnAttach()
     m_ParallaxMappingShader->UploadUniformInt("u_NormalMap", 1);
     m_ParallaxMappingShader->UploadUniformInt("u_DisplacementMap", 2);
     m_ParallaxMappingShader->UploadUniformFloat3("u_Light", m_LightPos);
-    m_ParallaxMappingShader->UploadUniformFloat("u_HeightScale", 0.1f);
 }
 
 void NormalandParallaxMappingSandbox::OnDetach()
@@ -176,6 +175,7 @@ void NormalandParallaxMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(-2.0, 0.0, 0.0));
     m_ParallaxMappingShader->UploadUniformMat4("u_Model", model);
+    m_ParallaxMappingShader->UploadUniformFloat("u_HeightScale", m_HeightScale);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_RedBrickwallDiffuse);
     glActiveTexture(GL_TEXTURE1);
@@ -189,6 +189,9 @@ void NormalandParallaxMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
 
 void NormalandParallaxMappingSandbox::OnImGuiRender()
 {
+    ImGui::Begin("Range Slider Example");
+    ImGui::SliderFloat("Value Range", &m_HeightScale, c_HeightMin, c_HeightMax);
+    ImGui::End();
 }
 
 void NormalandParallaxMappingSandbox::InitializeCamera()

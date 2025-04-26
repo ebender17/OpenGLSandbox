@@ -34,6 +34,10 @@ private:
     GLuint m_RedBrickwallNormal;
     GLuint m_RedBrickwallDisplacement;
 
+    float m_HeightScale = 0.1f;
+    const float c_HeightMin = 0.01f;
+    const float c_HeightMax = 0.1f;
+
     glm::vec3 m_LightPos = glm::vec3(0.5f, 1.0f, 0.3f);
 };
 

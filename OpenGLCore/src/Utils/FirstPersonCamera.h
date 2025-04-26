@@ -52,7 +52,7 @@ namespace OpenGLCore::Utils {
 
         float m_AccelerationFactor = 150.0f;
         float m_Damping = 5.0f;
-        float m_MaxSpeed = 10.0f;
+        float m_MaxSpeed = 2.0f;
         float m_FastCoef = 10.0f;
         glm::vec3 m_Velocity = glm::vec3(0.0f);
 
