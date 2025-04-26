@@ -140,7 +140,7 @@ void PostProcessMSAASandbox::OnAttach()
     m_TextureUnlitShader->UploadUniformInt("u_Texture", 0);
 
     m_FullScreenQuadShader = Shader::FromGLSLTextFiles(
-        "assets/shaders/postprocess.vert.glsl",
+        "assets/shaders/fullscreen-quad.vert.glsl",
         "assets/shaders/postprocess.frag.glsl"
     );
     glUseProgram(m_FullScreenQuadShader->GetRendererID());
