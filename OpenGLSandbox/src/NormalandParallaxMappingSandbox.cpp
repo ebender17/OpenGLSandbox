@@ -6,7 +6,7 @@ using namespace OpenGLCore;
 using namespace OpenGLCore::Utils;
 
 NormalandParallaxMappingSandbox::NormalandParallaxMappingSandbox()
-    : Layer("NormalMappingSandbox")
+    : Layer("NormalandParallaxMappingSandbox")
 {
 }
 
@@ -189,8 +189,8 @@ void NormalandParallaxMappingSandbox::OnUpdate(OpenGLCore::Timestep ts)
 
 void NormalandParallaxMappingSandbox::OnImGuiRender()
 {
-    ImGui::Begin("Range Slider Example");
-    ImGui::SliderFloat("Value Range", &m_HeightScale, c_HeightMin, c_HeightMax);
+    ImGui::Begin("Settings");
+    ImGui::SliderFloat("Height Scale", &m_HeightScale, c_HeightMin, c_HeightMax);
     ImGui::End();
 }
 

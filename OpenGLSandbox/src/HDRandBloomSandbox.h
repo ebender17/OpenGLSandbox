@@ -1,0 +1,55 @@
+#pragma once
+
+#include <OpenGLCore.h>
+#include <OpenGLCoreUtils.h>
+
+class HDRandBloomSandbox : public OpenGLCore::Layer
+{
+public:
+    HDRandBloomSandbox();
+    virtual ~HDRandBloomSandbox();
+
+    virtual void OnAttach() override;
+    virtual void OnDetach() override;
+    virtual void OnEvent(OpenGLCore::Event& event) override;
+    virtual void OnUpdate(OpenGLCore::Timestep ts) override;
+    virtual void OnImGuiRender() override;
+private:
+    void InitializeCamera();
+    bool OnWindowResized(OpenGLCore::WindowResizeEvent& event);
+    void CreateCubeVAO();
+    void CreateQuadVAO();
+private:
+    std::unique_ptr<OpenGLCore::Utils::FirstPersonCamera> m_Camera;
+
+    GLuint m_UBOMatrices;
+
+    GLuint m_FBO;
+    GLuint m_ColorBufferTexture;
+    GLuint m_QuadVAO;
+    GLuint m_CubeVAO;
+
+    OpenGLCore::Utils::Shader* m_LightingShader;
+    OpenGLCore::Utils::Shader* m_HDRShader;
+
+    GLuint m_WoodDiffuse;
+
+    std::array<glm::vec3, 4> m_LightPositions = {
+        glm::vec3(0.0f, 0.0f, 49.5f),
+        glm::vec3(-1.4f, -1.9f, 9.0f),
+        glm::vec3(0.0f, -1.8f, 15.0f),
+        glm::vec3(0.8f, -1.7f, 6.0f)
+    };
+
+    std::array<glm::vec3, 4> m_LightColors = {
+        glm::vec3(200.0f, 200.0f, 200.0f),
+        glm::vec3(0.1f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 10.0f),
+        glm::vec3(0.0f, 0.1f, 0.0f)
+    };
+
+    float m_Exposure = 1.0f;
+    const float c_ExposureMin = 0.1f;
+    const float c_ExposureMax = 5.0f;
+    bool m_EnableHDR = true;
+};
