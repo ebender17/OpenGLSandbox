@@ -10,6 +10,7 @@
 #include "GeometryShaderSandbox.h"
 #include "NormalandParallaxMappingSandbox.h"
 #include "DirectionalShadowMappingSandbox.h"
+#include "HDRandBloomSandbox.h"
 
 using namespace OpenGLCore;
 
@@ -28,8 +29,9 @@ public:
         // PushLayer(new BlinnPhongSandbox());
         // PushLayer(new InstancingSandbox());
         // PushLayer(new GeometryShaderSandbox());
-        PushLayer(new NormalandParallaxMappingSandbox());
+        // PushLayer(new NormalandParallaxMappingSandbox());
         // PushLayer(new DirectionalShadowMappingSandbox());
+        PushLayer(new HDRandBloomSandbox());
     }
 };
 
