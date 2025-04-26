@@ -20,6 +20,7 @@ namespace OpenGLCore::Utils {
         void UploadUniformInt(const std::string& name, int value);
         void UploadUniformIntArray(const std::string& name, int* values, uint32_t count);
         void UploadUniformFloat(const std::string& name, float value);
+        void UploadUniformFloatArray(const std::string& name, float* values, uint32_t count);
         void UploadUniformFloat2(const std::string& name, const glm::vec2& value);
         void UploadUniformFloat3(const std::string& name, const glm::vec3& value);
         void UploadUniformFloat3Array(const std::string& name, float* values, uint32_t count);
