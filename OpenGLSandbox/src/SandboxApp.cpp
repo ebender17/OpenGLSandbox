@@ -11,6 +11,7 @@
 #include "NormalandParallaxMappingSandbox.h"
 #include "DirectionalShadowMappingSandbox.h"
 #include "HDRandBloomSandbox.h"
+#include "WavesSandbox.h"
 
 using namespace OpenGLCore;
 
@@ -31,7 +32,8 @@ public:
         // PushLayer(new GeometryShaderSandbox());
         // PushLayer(new NormalandParallaxMappingSandbox());
         // PushLayer(new DirectionalShadowMappingSandbox());
-        PushLayer(new HDRandBloomSandbox());
+        // PushLayer(new HDRandBloomSandbox());
+        PushLayer(new WavesSandbox());
     }
 };
 

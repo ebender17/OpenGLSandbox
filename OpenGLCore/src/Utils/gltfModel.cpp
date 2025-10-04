@@ -89,10 +89,13 @@ namespace OpenGLCore::Utils {
 
                 LOG_INFO("indexaccessor: count {0}, type {1}", indexAccessor.count, indexAccessor.componentType);
 
-                tinygltf::Material& mat = model.materials[primitive.material];
-                for (auto& mats : mat.values)
+                if (model.materials.size() > 0)
                 {
-                    std::cout << "mat : " << mats.first.c_str() << std::endl;
+                    tinygltf::Material& mat = model.materials[primitive.material];
+                    for (auto& mats : mat.values)
+                    {
+                        std::cout << "mat : " << mats.first.c_str() << std::endl;
+                    }
                 }
 
                 for (auto& image : model.images)
