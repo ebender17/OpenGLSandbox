@@ -37,7 +37,7 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":502,
+			"count":10502,
 			"max":[
 				5,
 				0,
@@ -53,51 +53,51 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":502,
+			"count":10502,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":502,
+			"count":10502,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":2400,
+			"count":60000,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":6024,
+			"byteLength":126024,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6024,
-			"byteOffset":6024,
+			"byteLength":126024,
+			"byteOffset":126024,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4016,
-			"byteOffset":12048,
+			"byteLength":84016,
+			"byteOffset":252048,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4800,
-			"byteOffset":16064,
+			"byteLength":120000,
+			"byteOffset":336064,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":20864,
+			"byteLength":456064,
 			"uri":"tesselated-plane.bin"
 		}
 	]
